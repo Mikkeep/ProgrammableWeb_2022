@@ -1,0 +1,114 @@
+- name: Start Server and install packages
+  hosts: webserver
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  become: yes
+  become_user: root
+  tasks:
+
+    - name: "Update Hostnames"
+      hostname:
+        name: "kalorilaskuri"
+    - name: 'Add hostname to /etc/hosts'
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.0\.1[ \t]+localhost'
+        line: '127.0.0.1 localhost kalorilaskuri'
+        state: present
+
+    - name: update packages
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+    - name: Install packages
+      apt:
+        pkg:
+          - nginx
+          - python3-pip
+          - ufw
+          - python3-venv
+          - python3-dev
+          - virtualenv
+          - avahi-daemon
+
+- name: Server Configuration
+  hosts: webserver
+  become: yes
+  become_method: sudo
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+  - name: Copy file
+    copy:
+      src: "../requirements.txt"
+      dest: /home/vagrant/
+
+  - name: Copy Flask files to webserver
+    copy: src={{ item.src }} dest={{ item.dest }}
+    with_items:
+      - { src: '../website', dest: '/home/vagrant/' }
+      - { src: '../app.py', dest: '/home/vagrant/' }
+
+  - name: activate venv
+    pip:
+      virtualenv: /home/vagrant/venv
+      requirements: /home/vagrant/requirements.txt
+      virtualenv_python: python3.6    
+      
+  - name: systemd service template copy
+    copy:
+      src: "../.service"
+      dest: /etc/systemd/system/webserv.service
+
+  - name: start systemd service
+    systemd: name=webserv.service state=restarted enabled=yes
+
+  - name: NGINX conf copy
+    template:
+      src: "../.nginx"
+      dest: /etc/nginx/sites-available/webserver.conf
+
+  - name: remove default nginx site config
+    file: path=/etc/nginx/sites-enabled/default state=absent
+
+  - name: enable nginx site
+    file:
+      src: /etc/nginx/sites-available/webserver.conf
+      dest: /etc/nginx/sites-enabled/default
+      state: link
+      force: yes
+
+  - name: restart nginx
+    systemd: name=nginx state=restarted enabled=yes
+
+  - name: start avahi-daemon
+    systemd: name=avahi-daemon state=restarted enabled=yes
+
+
+  - name: open firewall port 8000
+    ufw:
+      rule: allow
+      port: "8000"
+      proto: tcp
+
+  - name: open firewall port 5432
+    ufw:
+      rule: allow
+      port: "5432"
+      proto: tcp
+
+  - name: Allow db server in ufw
+    ufw:
+      rule: allow
+      port: "80"
+      proto: tcp
+
+#  - name: Enable UFW
+#    ufw:
+#      state: enabled
+
+  - name: Start FLASK!!!
+    command: which python
+    register: check
+
+  - debug: msg="{{ check.stdout }}"
+

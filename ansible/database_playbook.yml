@@ -1,0 +1,76 @@
+- name: Start database and install packages
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  tasks:
+
+  - name: update packages
+    apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+  - name: Install postgres and acl and pip3
+    apt:
+      name: 
+        - postgresql-12
+        - postgresql-client-12
+        - acl
+#        - python3-pip
+        - ufw
+      state: latest
+
+#  - name: Allow db server in ufw
+#    ufw:
+#      rule: allow
+#      port: "5432"
+#      proto: tcp
+    
+#  - name: Allow db server in ufw
+#    ufw:
+#      rule: allow
+#      port: "80"
+#      proto: tcp
+
+#  - name: Allow db server in ufw
+#    ufw:
+#      rule: allow
+#      port: "5434"
+#      proto: tcp 
+
+#  - name: Start and enable postgres on startup
+#    service: "name={{ item }} state=started enabled=yes"
+#    with_items:
+#      - postgresql
+
+  - name: Install psycopg2
+    pip:
+      name: psycopg2-binary
+      state: latest
+
+  - name: Create webserver db
+    postgresql_db:
+      state: present
+      #name: "{{ db_name }}"
+      name: vagrant
+    become: yes
+    become_user: postgres
+
+  - name: Create db user
+    postgresql_user:
+      state: present
+      #name: "{{ db_user }}"
+      name: vagrant
+      #password: "{{ db_password }}"
+      password: vagrant
+    become: yes
+    become_user: postgres
+
+  - name: Grant db user access to webserver db
+    postgresql_privs:
+      type: database
+      #database: "{{ db_name }}"
+      database: vagrant
+      #roles: "{{ db_user }}"
+      roles: vagrant
+      grant_option: no
+      privs: all
+    become: yes
+    become_user: postgres
