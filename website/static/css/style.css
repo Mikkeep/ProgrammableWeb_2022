@@ -1,13 +1,13 @@
 body {
-    background: #e1eaf5;
+    background: #4783cc;
     font-family: 'Poppins', sans-serif;
 }
 
 .container {
-    background: white;
+    background: rgb(127, 215, 221);
     width: 800px;
     margin: 80px auto 0;
-    box-shadow: 0 0 5px rgba(65,67,144,0.15);
+    box-shadow: 0 0 5px rgba(76, 80, 187, 0.15);
     padding: 50px;
 }
 

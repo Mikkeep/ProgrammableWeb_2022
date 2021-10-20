@@ -7,16 +7,22 @@
   - name: update packages
     apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
 
-  - name: Install postgres and acl and pip3
+  - name: Install postgres, Docker and dependencies
     apt:
       name: 
         - postgresql-12
         - postgresql-client-12
         - acl
-#        - python3-pip
-        - ufw
+        - python3-pip
+#        - ufw
+#        - docker.io
       state: latest
 
+#  - name: Start docker service
+#    service:
+#      name: docker
+#      state: started
+      
 #  - name: Allow db server in ufw
 #    ufw:
 #      rule: allow
@@ -34,11 +40,19 @@
 #      rule: allow
 #      port: "5434"
 #      proto: tcp 
-
-#  - name: Start and enable postgres on startup
-#    service: "name={{ item }} state=started enabled=yes"
-#    with_items:
-#      - postgresql
+#  - name: Create PostgreSQL container
+#    docker_container:
+#      name: postgres
+#      image: postgres:12
+#      state: started
+#      recreate: yes
+#      ports:
+#        - "5432:5432"
+        
+  - name: Start and enable postgres on startup
+    service: "name={{ item }} state=started enabled=yes"
+    with_items:
+      - postgresql
 
   - name: Install psycopg2
     pip:
@@ -49,7 +63,7 @@
     postgresql_db:
       state: present
       #name: "{{ db_name }}"
-      name: vagrant
+      name: webbi
     become: yes
     become_user: postgres
 
@@ -57,9 +71,9 @@
     postgresql_user:
       state: present
       #name: "{{ db_user }}"
-      name: vagrant
+      name: webbi
       #password: "{{ db_password }}"
-      password: vagrant
+      password: webbi
     become: yes
     become_user: postgres
 
@@ -67,9 +81,9 @@
     postgresql_privs:
       type: database
       #database: "{{ db_name }}"
-      database: vagrant
+      database: webbi
       #roles: "{{ db_user }}"
-      roles: vagrant
+      roles: webbi
       grant_option: no
       privs: all
     become: yes
