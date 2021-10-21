@@ -1,0 +1,34 @@
+/* ./src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .sidebar-icon {
+    @apply relative flex items-center justify-center
+            h-12 w-12 mt-2 mb-2 mx-auto shadow-md
+            bg-gray-700 text-blue-500
+            hover:bg-gray-800 rounded-full
+            hover:rounded-xl
+            transition-all duration-75 ease-linear
+            cursor-pointer;
+  }
+
+
+  .sidebar-setting {
+    @apply absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md
+            text-blue-300 bg-gray-700
+            text-sm font-mono
+            transition-all duration-75 scale-0 origin-left;
+  }
+
+  .top-navigation {
+    @apply flex flex-row items-center justify-evenly 
+    bg-gray-300 bg-opacity-90 
+    w-full h-16 
+    m-0 
+    shadow-lg;
+  }
+
+
+}
